@@ -77,7 +77,7 @@ export default function userRoutes(prisma : PrismaClient) {
        },200);
 
     });
-//    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MX0.UQvbR8lR0_4oEpAY6yAgrBNrhqelgaKZxDKSDtx3_7k",
+
 
     return router;
 }
