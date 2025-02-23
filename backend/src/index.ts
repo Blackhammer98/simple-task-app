@@ -1,12 +1,17 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import { PrismaClient } from '@prisma/client';
+import userRoutes from './Routes/userRoutes.js';
 
+const prisma = new PrismaClient();
 const app = new Hono()
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
-})
 
+app.route("/api/v1" , userRoutes(prisma));
+
+app.get("/" ,(c) => {
+  return c.text("hello hono")
+})
 serve({
   fetch: app.fetch,
   port: 3000
