@@ -1,8 +1,6 @@
 import bcrypt from 'bcrypt';
 import { Hono } from "hono";
-import { use } from "hono/jsx";
 import { sign } from "hono/jwt";
-const My_secret = process.env.JWT_SECRET || "my secret_key";
 export default function userRoutes(prisma) {
     const router = new Hono();
     router.post("/signup", async (c) => {
@@ -50,7 +48,15 @@ export default function userRoutes(prisma) {
                 error: "Invalid credentials"
             }, 401);
         }
-        const token = await sign({ id: user.id }, My_secret);
+        const jwtSecret = process.env.JWT_SECRET;
+        if (!jwtSecret) {
+            console.error("JWT_SECRET is not defined in environment variables");
+            return c.json({
+                message: "Server configuration error",
+                success: false,
+            }, 500);
+        }
+        const token = await sign({ id: user.id }, jwtSecret);
         return c.json({
             message: "Signin Successful",
             token,
