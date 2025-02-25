@@ -1,10 +1,19 @@
+import { signinInput, signupInput } from "@nikit086/task-common";
 import bcrypt from 'bcrypt';
+import { error } from "console";
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
 export default function userRoutes(prisma) {
     const router = new Hono();
     router.post("/signup", async (c) => {
         const body = await c.req.json();
+        const { success } = signupInput.safeParse(body);
+        if (!success) {
+            c.status(411);
+            return c.json({
+                message: "Inputs are incorrect"
+            });
+        }
         const { username, email, password } = body;
         if (!username || !email || !password) {
             return c.json({
@@ -15,9 +24,9 @@ export default function userRoutes(prisma) {
         try {
             const user = await prisma.user.create({
                 data: {
-                    username,
-                    email,
-                    password: hashedPassword,
+                    username: body.username,
+                    email: body.email,
+                    password: hashedPassword
                 },
             });
             return c.json({
@@ -37,10 +46,17 @@ export default function userRoutes(prisma) {
     });
     router.post("/signin", async (c) => {
         const body = await c.req.json();
+        const { success } = signinInput.safeParse(body);
+        if (!success) {
+            c.status(411);
+            return c.json({
+                message: "Inputs are incorrect"
+            });
+        }
         const { email, password } = body;
         const user = await prisma.user.findUnique({
             where: {
-                email,
+                email: body.email,
             }
         });
         if (!user || !(await bcrypt.compare(password, user.password))) {

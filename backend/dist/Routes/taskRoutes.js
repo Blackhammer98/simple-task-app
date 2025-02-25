@@ -1,3 +1,4 @@
+import { createTaskInput, updateTaskInput } from "@nikit086/task-common";
 import { Hono } from "hono";
 import { verify } from "hono/jwt";
 export default function taskRoutes(prisma) {
@@ -30,13 +31,21 @@ export default function taskRoutes(prisma) {
             return c.json({ message: "Invalid or expired token", success: false }, 401);
         }
     });
+    //create task route
     router.post("/addtask", async (c) => {
         try {
+            const body = await c.req.json();
+            const { success } = createTaskInput.safeParse(body);
+            if (!success) {
+                c.status(411);
+                return c.json({
+                    message: "Inputs are incorrect"
+                });
+            }
             const userId = c.get("userId");
             if (!userId) {
                 return c.json({ message: "Unauthorized", success: false }, 401);
             }
-            const body = await c.req.json();
             const { title, description } = body;
             if (!title || !userId) {
                 return c.json({
@@ -47,9 +56,9 @@ export default function taskRoutes(prisma) {
             ;
             const task = await prisma.task.create({
                 data: {
-                    title,
-                    description: description || "",
-                    userId: userId
+                    title: body.title,
+                    description: body.description || "",
+                    userId: (userId)
                 },
             });
             return c.json({
@@ -105,6 +114,13 @@ export default function taskRoutes(prisma) {
             const idString = c.req.param('id');
             const id = parseInt(idString);
             const body = await c.req.json();
+            const { success } = updateTaskInput.safeParse(body);
+            if (!success) {
+                c.status(411);
+                return c.json({
+                    message: "Inputs are incorrect"
+                });
+            }
             const task = await prisma.task.findUnique({ where: { id } });
             if (!task) {
                 return c.json({ message: `No task found with ID "${id}"`, success: false }, 404);
@@ -113,15 +129,17 @@ export default function taskRoutes(prisma) {
                 return c.json({ message: "Permission denied", success: false }, 403);
             }
             await prisma.task.update({
-                where: { id },
+                where: {
+                    id: body.id
+                },
                 data: {
                     title: body.title,
-                    description: body.description
-                }
+                    description: body.description,
+                },
             });
             return c.json({
                 message: "Task update successfully",
-                data: body,
+                id: task.id
             }, 200);
         }
         catch (error) {

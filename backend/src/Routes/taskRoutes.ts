@@ -1,3 +1,4 @@
+import { createTaskInput, updateTaskInput } from "@nikit086/task-common";
 import type {PrismaClient } from "@prisma/client";
 import { Hono} from "hono";
 
@@ -55,13 +56,23 @@ export default function taskRoutes(prisma : PrismaClient) {
 
  });
 
-    router.post("/addtask",  async (c) => {
-try {
+//create task route
+ router.post("/addtask",  async (c) => {
+     try {
+      const body = await c.req.json();
+      const {success} = createTaskInput.safeParse(body);
+      if(!success) {
+        c.status(411);
+        return c.json({
+          message:"Inputs are incorrect"
+        });
+      }
+
     const userId = c.get("userId");
       if (!userId) {
         return c.json({ message: "Unauthorized", success: false }, 401);
       }
-    const body = await c.req.json();
+    
     const { title ,description  } = body;
 
     if(!title || !userId) {
@@ -74,9 +85,9 @@ try {
   
   const task = await prisma.task.create({
       data: {
-        title,
-        description : description || "",
-        userId : userId
+       title : body.title,
+      description : body.description || "",
+        userId : (userId)
       },
   });
 
@@ -145,6 +156,13 @@ router.put("/updatetask/:id" , async (c) => {
         const id = parseInt(idString);
 
         const body = await c.req.json();
+        const {success} = updateTaskInput.safeParse(body);
+        if(!success) {
+          c.status(411);
+          return c.json({
+            message : "Inputs are incorrect"
+          });
+        }
         const task = await prisma.task.findUnique({ where: { id } });
             if (!task) {
                 return c.json({ message: `No task found with ID "${id}"`, success: false }, 404);
@@ -153,16 +171,18 @@ router.put("/updatetask/:id" , async (c) => {
                     return c.json({ message: "Permission denied", success: false }, 403);
                 }    
         await prisma.task.update({
-           where :{id},
+           where :{
+            id : body.id
+          },
            data :{
             title : body.title,
-            description : body.description
-           }
+            description : body.description,
+           },
         });
 
         return c.json({
             message : "Task update successfully",
-            data : body,
+            id : task.id
         },200);
         
     } catch (error) {
