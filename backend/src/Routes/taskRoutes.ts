@@ -202,7 +202,13 @@ router.get("/getalltasks",async (c) => {
           }
         
     const tasks = await prisma.task.findMany({
-        where : {userId}
+        where : {userId},select: {
+          id: true,
+          title: true,
+          description: true,
+          createdAt: true,
+          status: true,
+        },
     })
     return c.json({
         message : "Tasks retrieved successfully",

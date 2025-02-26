@@ -157,7 +157,13 @@ export default function taskRoutes(prisma) {
                 return c.json({ message: "Unauthorized", success: false }, 401);
             }
             const tasks = await prisma.task.findMany({
-                where: { userId }
+                where: { userId }, select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    createdAt: true,
+                    status: true,
+                },
             });
             return c.json({
                 message: "Tasks retrieved successfully",

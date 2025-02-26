@@ -29,7 +29,7 @@ model Task {
   id   Int     @id @default(autoincrement())
   title  String
   description String
-  completed  Boolean @default(false)
+  status      String   @default("Pending")
   userId   Int
   user    User     @relation(fields: [userId], references: [id])
   createdAt   DateTime @default(now())
