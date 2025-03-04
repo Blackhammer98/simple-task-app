@@ -9,7 +9,7 @@ const prisma = new PrismaClient();
 const app = new Hono();
 app.use("/*", cors({
     origin: "http://localhost:5173",
-    allowMethods: ["GET", "POST", "PUT", "DELETE"],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
 }));
 app.route("/api/v1/user", userRoutes(prisma));
@@ -19,7 +19,7 @@ app.get("/", (c) => {
 });
 serve({
     fetch: app.fetch,
-    port: 3000
+    port: 8080
 }, (info) => {
     console.log(`Server is running on http://localhost:${info.port}`);
 });

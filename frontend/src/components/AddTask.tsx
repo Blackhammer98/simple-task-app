@@ -63,7 +63,7 @@ export const AddTask = ({onTaskAdded} : AddTaskProps) => {
                 <h2 className="text-2xl font-semibold text-gray-800 mb-4">Create New Task</h2>
                 <form onSubmit={onHandleSubmit} className="space-y-4">
               <div>
-                <TaskIabbeledInput label="Title" placeholder="Add title to your task" onChange={(e) => {
+                <TaskIabbeledInput label="Title" placeholder="Add title to your task"  onChange={(e) => {
                   setTaskInputs({
                     ...taskInputs,
                      title : e.target.value
@@ -108,7 +108,7 @@ interface TaskLabbeledInputType {
   rows? : number
 }
 
-function TaskIabbeledInput ({label , placeholder ,onChange , rows , type} : TaskLabbeledInputType) {
+function TaskIabbeledInput ({label , placeholder ,onChange , rows , } : TaskLabbeledInputType) {
   return <div>
         
 <label  className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{label}</label>

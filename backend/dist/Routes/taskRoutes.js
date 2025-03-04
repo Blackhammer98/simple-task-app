@@ -75,7 +75,7 @@ export default function taskRoutes(prisma) {
             }, 500);
         }
     });
-    router.get("/gettask/:id", async (c) => {
+    router.patch("/taskstatus/:id/status", async (c) => {
         try {
             const userId = c.get("userId");
             if (!userId) {
@@ -83,27 +83,42 @@ export default function taskRoutes(prisma) {
             }
             const idString = c.req.param("id");
             const id = parseInt(idString);
+            const body = await c.req.json();
+            const { status } = body;
+            if (!status || !["Pending", "In Progress", "Completed"].includes(status)) {
+                return c.json({ message: "Invalid status value", success: false }, 400);
+            }
             const task = await prisma.task.findUnique({
                 where: {
-                    id
+                    id,
+                    userId,
                 },
             });
             if (!task) {
                 return c.json({
                     message: `No task found with id "${id}"`,
                     success: false,
-                }, 400);
+                }, 404);
             }
+            const updatedTask = await prisma.task.update({
+                where: {
+                    id,
+                    userId,
+                },
+                data: {
+                    status
+                }
+            });
             return c.json({
-                message: "Task retrived successfully",
+                message: "Task status updated successfully",
                 success: true,
-                data: task,
+                data: updatedTask,
             }, 200);
         }
         catch (error) {
-            console.error("error while retrieving task", error);
+            console.error("Error updating task status:", error);
             return c.json({
-                message: "Failed to retrieve task",
+                message: "Failed to update task status",
                 success: false,
             }, 500);
         }
@@ -157,11 +172,13 @@ export default function taskRoutes(prisma) {
                 return c.json({ message: "Unauthorized", success: false }, 401);
             }
             const tasks = await prisma.task.findMany({
-                where: { userId }, select: {
+                where: { userId },
+                select: {
                     id: true,
                     title: true,
                     description: true,
                     createdAt: true,
+                    updatedAt: true,
                     status: true,
                 },
             });
@@ -175,6 +192,27 @@ export default function taskRoutes(prisma) {
             return c.json({
                 message: "Failled to retrieve all tasks"
             }, 500);
+        }
+    });
+    router.delete("/deletetask/:id", async (c) => {
+        try {
+            const userId = c.get("userId");
+            if (!userId) {
+                return c.json({ message: "Unauthorized: Missing or invalid Bearer token" }, 401);
+            }
+            const idString = c.req.param('id');
+            const id = parseInt(idString);
+            if (isNaN(id)) {
+                return c.json({ message: "Invalid task ID" }, 400);
+            }
+            await prisma.task.delete({
+                where: { id },
+            });
+            return c.json({ message: "Task deleted successfully" }, 200);
+        }
+        catch (error) {
+            console.error("Error deleting task:", error);
+            return c.json({ message: "Failed to delete task" }, 500);
         }
     });
     return router;

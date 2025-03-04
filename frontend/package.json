@@ -12,6 +12,7 @@
   "dependencies": {
     "@nikit086/task-common": "^1.0.0",
     "axios": "^1.7.9",
+    "lucide-react": "^0.476.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.29.0"
